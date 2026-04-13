@@ -26,7 +26,7 @@ TOTAL_PURSE = 50000
 DISCORD_LINK = "https://discord.gg/ePnD2Qqkj"
 WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/KTPQNGAMGh065WGJ8LmsYn"
 # Note: Update APP_URL once you deploy to Streamlit Cloud to make notifications work perfectly
-APP_URL = "https://volleyball-auction.streamlit.app" 
+APP_URL = "https://volleyball-masterji.streamlit.app/" 
 
 # --- 3. THE 2026 PLAYER SQUAD (26 PLAYERS) ---
 DEFAULT_PLAYERS = [
