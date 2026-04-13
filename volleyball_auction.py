@@ -20,7 +20,10 @@ db_lock = get_lock()
 DB_FILE = "auction_db.json"
 TOTAL_PURSE = 50000
 
-# --- 2. DEFAULT SYSTEM DATA (ONLY MASTERJI IS FIXED) ---
+# 👇 AAPKA DISCORD LINK YAHAN SET HAI 👇
+DISCORD_LINK = "https://discord.gg/ePnD2Qqkj"
+
+# --- 2. DEFAULT SYSTEM DATA ---
 DEFAULT_USER_DATA = {
     "Masterji": {"password": "Mishraji041411", "team": "👑 ADMIN"}
 }
@@ -130,13 +133,18 @@ sold_names = [x["Player"].replace(" (RTM)", "").replace(" (Retained)", "") for x
 while db["player_index"] < len(players) and players[db["player_index"]]["Name"] in sold_names:
     db["player_index"] += 1
 
-# --- 7. SIDEBAR (CHART & STATS) ---
+# --- 7. SIDEBAR (CHART & STATS & DISCORD) ---
 spent = {t: sum(x["Final Points"] for x in db["sold_data"] if x["Sold To"] == t) for t in teams}
 purses = {t: TOTAL_PURSE - spent.get(t, 0) for t in teams}
 
 with st.sidebar:
     st.markdown(f"### {st.session_state['team_name']}")
     if st.button("Logout"): st.session_state['logged_in'] = False; st.rerun()
+    st.write("---")
+    
+    # 🎤 DISCORD LIVE BUTTON
+    st.markdown("### 🎙️ Live War Room")
+    st.link_button("🎧 Join Discord Voice/Chat", DISCORD_LINK, use_container_width=True)
     st.write("---")
     
     if db["sold_data"]:
@@ -190,7 +198,7 @@ else:
     actual_base = current_player["Base_Points"] // 2 if db.get("round_2") else current_player["Base_Points"]
     is_already_sold = any(p["Player"] == current_player["Name"] for p in db["sold_data"])
 
-    # Auto Unsold dynamically calculated based on active teams
+    # Auto Unsold dynamically calculated
     if len(db.get("passed_teams", [])) >= len(teams) and len(teams) > 0 and not is_already_sold:
         with db_lock:
             fresh_db = load_db()
@@ -284,9 +292,9 @@ else:
                         save_db(fresh_db)
                 st.rerun()
     elif st.session_state['user_role'] == "viewer":
-        st.info("👀 You are watching the Live Broadcast. Only Captains can bid.")
+        st.info("👀 You are watching the Live Broadcast on Discord. Only Captains can bid.")
 
-# --- 11. ADMIN CONTROLS (MASTERJI ONLY) ---
+# --- 11. MASTERJI CONTROLS ---
 if st.session_state['user_role'] == "Masterji":
     with st.expander("🛠️ Masterji Controls", expanded=True):
         st.markdown("#### ⚡ Quick Actions")
@@ -316,7 +324,7 @@ if st.session_state['user_role'] == "Masterji":
         
         st.write("---")
         
-        # --- CALL SPECIFIC PLAYER (MANUAL OVERRIDE) ---
+        # --- CALL SPECIFIC PLAYER ---
         st.markdown("#### 🎯 Call Specific Player (Manual Override)")
         curr_p_name = players[db["player_index"]]["Name"] if db["player_index"] < len(players) else ""
         available_for_call = [p["Name"] for p in players if p["Name"] not in sold_names and p["Name"] != curr_p_name]
@@ -351,9 +359,9 @@ if st.session_state['user_role'] == "Masterji":
         with tm1:
             with st.form("add_team"):
                 st.write("**➕ Add New Team/Captain**")
-                n_id = st.text_input("Login ID (e.g. rahul_kings)")
-                n_pass = st.text_input("Password (e.g. 1234)")
-                n_name = st.text_input("Team Name with Emoji (e.g. 🦁 RAHUL'S KINGS)")
+                n_id = st.text_input("Login ID")
+                n_pass = st.text_input("Password")
+                n_name = st.text_input("Team Name with Emoji")
                 if st.form_submit_button("Add Team", type="primary"):
                     if n_id and n_pass and n_name:
                         with db_lock:
@@ -376,7 +384,7 @@ if st.session_state['user_role'] == "Masterji":
                         st.success("Team Removed!"); time.sleep(1); st.rerun()
                 else: 
                     st.info("No teams left to remove.")
-                    st.form_submit_button("Remove Team", disabled=True) # Bug fix logic!
+                    st.form_submit_button("Remove Team", disabled=True) 
 
         st.write("---")
         
@@ -449,7 +457,7 @@ with tab_squads:
                 st.caption(f"RTM Card: {'✅ Available' if db['rtm_cards'].get(t) else '❌ Used'}")
                 team_players = [x for x in db["sold_data"] if x["Sold To"] == t]
                 for p in team_players: st.markdown(f"- **{p['Player']}** ({p['Final Points']} pts)")
-    else: st.info("No active teams. Add a team from Masterji Controls to start.")
+    else: st.info("No active teams. Add a team from Masterji Controls.")
 
 def get_status(p_name):
     for item in db["sold_data"]:
