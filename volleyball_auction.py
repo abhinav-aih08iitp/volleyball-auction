@@ -25,7 +25,6 @@ DEFAULT_USER_DATA = {
     "Masterji": {"password": "Mishraji041411", "team": "👑 ADMIN"}
 }
 
-# Sidhu added back to the player list since he is no longer a fixed captain
 DEFAULT_PLAYERS = [
     {"Name": "Golu bhiya", "Role": "OUTSIDE HITTER", "Base_Points": 800, "Spike": 8, "Defense": 6, "Speed": 7},
     {"Name": "Bheem", "Role": "OUTSIDE HITTER", "Base_Points": 500, "Spike": 6, "Defense": 5, "Speed": 7},
@@ -126,7 +125,7 @@ if not st.session_state['logged_in']:
             st.rerun()
     st.stop()
 
-# Auto-skip logic
+# Auto-skip logic for sold players
 sold_names = [x["Player"].replace(" (RTM)", "").replace(" (Retained)", "") for x in db["sold_data"]]
 while db["player_index"] < len(players) and players[db["player_index"]]["Name"] in sold_names:
     db["player_index"] += 1
@@ -191,7 +190,7 @@ else:
     actual_base = current_player["Base_Points"] // 2 if db.get("round_2") else current_player["Base_Points"]
     is_already_sold = any(p["Player"] == current_player["Name"] for p in db["sold_data"])
 
-    # Auto Unsold dynamically calculated
+    # Auto Unsold dynamically calculated based on active teams
     if len(db.get("passed_teams", [])) >= len(teams) and len(teams) > 0 and not is_already_sold:
         with db_lock:
             fresh_db = load_db()
@@ -287,7 +286,7 @@ else:
     elif st.session_state['user_role'] == "viewer":
         st.info("👀 You are watching the Live Broadcast. Only Captains can bid.")
 
-# --- 11. ADMIN CONTROLS ---
+# --- 11. ADMIN CONTROLS (MASTERJI ONLY) ---
 if st.session_state['user_role'] == "Masterji":
     with st.expander("🛠️ Masterji Controls", expanded=True):
         st.markdown("#### ⚡ Quick Actions")
@@ -317,7 +316,7 @@ if st.session_state['user_role'] == "Masterji":
         
         st.write("---")
         
-        # --- NEW: CALL SPECIFIC PLAYER (MANUAL OVERRIDE) ---
+        # --- CALL SPECIFIC PLAYER (MANUAL OVERRIDE) ---
         st.markdown("#### 🎯 Call Specific Player (Manual Override)")
         curr_p_name = players[db["player_index"]]["Name"] if db["player_index"] < len(players) else ""
         available_for_call = [p["Name"] for p in players if p["Name"] not in sold_names and p["Name"] != curr_p_name]
@@ -346,7 +345,7 @@ if st.session_state['user_role'] == "Masterji":
 
         st.write("---")
         
-        # --- DYNAMIC TEAM MANAGEMENT ---
+        # --- DYNAMIC TEAM MANAGEMENT (WITH BUG FIX) ---
         st.markdown("#### ⚙️ Manage Teams (Captains)")
         tm1, tm2 = st.columns(2)
         with tm1:
@@ -375,7 +374,9 @@ if st.session_state['user_role'] == "Masterji":
                             del fresh_db["users"][r_id]
                             save_db(fresh_db)
                         st.success("Team Removed!"); time.sleep(1); st.rerun()
-                else: st.info("No teams left to remove.")
+                else: 
+                    st.info("No teams left to remove.")
+                    st.form_submit_button("Remove Team", disabled=True) # Bug fix logic!
 
         st.write("---")
         
@@ -448,7 +449,7 @@ with tab_squads:
                 st.caption(f"RTM Card: {'✅ Available' if db['rtm_cards'].get(t) else '❌ Used'}")
                 team_players = [x for x in db["sold_data"] if x["Sold To"] == t]
                 for p in team_players: st.markdown(f"- **{p['Player']}** ({p['Final Points']} pts)")
-    else: st.info("No active teams. Add a team from Admin Controls.")
+    else: st.info("No active teams. Add a team from Masterji Controls to start.")
 
 def get_status(p_name):
     for item in db["sold_data"]:
